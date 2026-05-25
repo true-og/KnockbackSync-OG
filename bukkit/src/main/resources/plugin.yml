@@ -1,4 +1,4 @@
-name: KnockbackSync
+name: KnockbackSync-OG
 version: ${version}
 main: me.caseload.knockbacksync.BukkitLoaderPlugin
 api-version: '1.13' # We actually support 1.12.2, api-version was added later though

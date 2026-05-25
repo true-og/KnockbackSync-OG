@@ -1,6 +1,0 @@
-accessWidener v2 named
-
-accessible field net/minecraft/server/command/ServerCommandSource output Lnet/minecraft/server/command/CommandOutput;
-accessible field net/minecraft/server/world/ServerChunkLoadingManager entityTrackers Lit/unimi/dsi/fastutil/ints/Int2ObjectMap;
-accessible class net/minecraft/server/world/ServerChunkLoadingManager$EntityTracker
-#accessible method net/minecraft/server/level/ChunkMap$TrackedEntity updatePlayers (Ljava/util/List;)V

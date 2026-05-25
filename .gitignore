@@ -7,6 +7,10 @@ dependency-reduced-pom.xml
 # Ignore maven build files
 target/
 
+# Eclipse files
+.classpath
+.project
+.settings/
 
 .gradle/
 build/

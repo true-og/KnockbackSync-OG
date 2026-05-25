@@ -3,7 +3,7 @@
 #########################################
 
 # Do not modify!
-config_version: 7
+config_version: 8
 
 # Plugin enabled state
 # Toggleable using /knockbacksync toggle
@@ -44,6 +44,28 @@ ping_strategy: "KEEPALIVE"
 
 # Whether to try to detect when player is offground and apply less kb
 enable_offground_synchronization: true
+
+# Legacy (1.8) melee knockback.
+# When enabled, KnockbackSync computes the exact 1.8 player-vs-player knockback
+# (horizontal + vertical) itself and becomes the single owner of melee velocity,
+# then latency-syncs it as usual. This reproduces OldCombatMechanics'
+# old-player-knockback values for ALL clients 1.8+ while keeping them synced.
+#
+# IMPORTANT: if you enable this, DISABLE OldCombatMechanics' old-player-knockback
+# module (remove it from the active modeset). Running both at once makes two
+# plugins fight over PlayerVelocityEvent. KnockbackSync owns the velocity here.
+# OCM can still provide its other features (attack cooldown removal, etc.).
+legacy_knockback:
+  enabled: true              # Master toggle for legacy knockback
+  horizontal: 0.4             # Base horizontal knockback (OCM: knockback-horizontal)
+  vertical: 0.4               # Base vertical knockback (OCM: knockback-vertical)
+  vertical_limit: 0.4         # Vertical cap before sprint/enchant bonus (OCM: knockback-vertical-limit)
+  extra_horizontal: 0.5       # Bonus horizontal per sprint/Knockback level (OCM: knockback-extra-horizontal)
+  extra_vertical: 0.1         # Bonus vertical when sprint/Knockback applies (OCM: knockback-extra-vertical)
+  # When false (default, matching OCM), netherite/armour knockback resistance is
+  # ignored so the velocity event always fires and full 1.8 knockback is applied.
+  # When true, horizontal knockback is reduced by the victim's resistance attribute.
+  enable_knockback_resistance: false
 
 # This is the rate the server will use for (amongst other things) sending packets about entities to players
 # In other words it defines how often clients get updated velocity for other entities in the world

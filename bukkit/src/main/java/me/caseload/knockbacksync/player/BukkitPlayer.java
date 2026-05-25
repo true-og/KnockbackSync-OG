@@ -184,6 +184,16 @@ public class BukkitPlayer implements PlatformPlayer {
     }
 
     @Override
+    public int getWeaponKnockbackLevel() {
+        // OCM parity: use the main hand item, or the off hand when the main hand is empty.
+        org.bukkit.inventory.ItemStack mainHand = bukkitPlayer.getInventory().getItemInMainHand();
+        org.bukkit.inventory.ItemStack weapon = mainHand.getType() == org.bukkit.Material.AIR
+                ? bukkitPlayer.getInventory().getItemInOffHand()
+                : mainHand;
+        return weapon.getEnchantmentLevel(Enchantment.KNOCKBACK);
+    }
+
+    @Override
     public @Nullable Integer getNoDamageTicks() {
         return bukkitPlayer.getNoDamageTicks();
     }

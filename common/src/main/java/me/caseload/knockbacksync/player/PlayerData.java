@@ -84,6 +84,10 @@ public class PlayerData {
     @Nullable @Setter private Double ping, previousPing;
     @Nullable @Setter private Double verticalVelocity;
     @Nullable @Setter private Integer lastDamageTicks;
+    // Legacy (1.8) knockback computed at damage time, consumed by the next PlayerVelocityEvent.
+    // Guarded by a short expiry so a stale value never affects an unrelated velocity event.
+    @Nullable private Vector3d legacyKnockback;
+    private long legacyKnockbackExpiryNanos;
     @Setter private double gravityAttribute = 0.08;
     @Setter private double knockbackResistanceAttribute = 0.0;
     public PingStrategy pingStrategy; // this is currently shared between all instances, but can be made per-player later
@@ -93,6 +97,40 @@ public class PlayerData {
         this.user = user;
         this.platformPlayer = platformPlayer;
         this.pingStrategy = loadPingStrategy(Base.INSTANCE.getConfigManager());
+    }
+
+    /**
+     * Stores the legacy (1.8) knockback to apply on the next PlayerVelocityEvent.
+     * Expires shortly after so it can never be applied to an unrelated velocity event
+     * (explosions, other plugins, etc.) if the expected velocity event never fires.
+     */
+    public void setLegacyKnockback(@Nullable Vector3d legacyKnockback) {
+        this.legacyKnockback = legacyKnockback;
+        // 100ms window: damage and the resulting velocity event fire in the same tick.
+        this.legacyKnockbackExpiryNanos = System.nanoTime() + 100_000_000L;
+    }
+
+    /**
+     * @return the pending legacy knockback if present and not expired, otherwise {@code null}.
+     */
+    @Nullable
+    public Vector3d peekLegacyKnockback() {
+        if (legacyKnockback == null) return null;
+        if (System.nanoTime() > legacyKnockbackExpiryNanos) {
+            legacyKnockback = null;
+            return null;
+        }
+        return legacyKnockback;
+    }
+
+    /**
+     * Returns and clears the pending legacy knockback (if present and not expired).
+     */
+    @Nullable
+    public Vector3d consumeLegacyKnockback() {
+        Vector3d v = peekLegacyKnockback();
+        legacyKnockback = null;
+        return v;
     }
 
     public double getNotNullPing() {

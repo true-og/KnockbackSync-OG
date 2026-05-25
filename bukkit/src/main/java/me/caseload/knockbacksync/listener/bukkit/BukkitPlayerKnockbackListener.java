@@ -16,7 +16,11 @@ import org.bukkit.util.Vector;
 
 public class BukkitPlayerKnockbackListener extends PlayerKnockbackListener implements Listener {
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    // HIGHEST so KnockbackSync is the last writer in the event chain: it owns the final
+    // melee velocity. We read and write the EVENT velocity (not player.getVelocity()/
+    // player.setVelocity()) so we integrate with the chain instead of fighting it. See
+    // knockback-sync issue #7 (kernitus, Krymonota, Axionize).
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerVelocity(PlayerVelocityEvent event) {
         Player victim = event.getPlayer();
         EntityDamageEvent entityDamageEvent = victim.getLastDamageCause();
@@ -34,7 +38,11 @@ public class BukkitPlayerKnockbackListener extends PlayerKnockbackListener imple
         if (MultiLibUtil.isExternalPlayer(victim))
             return;
 
-        Vector vector = victim.getVelocity();
-        onPlayerVelocity(new BukkitPlayer(victim), new Vector3d(vector.getX(), vector.getY(), vector.getZ()));
+        Vector eventVelocity = event.getVelocity();
+        Vector3d result = onPlayerVelocity(new BukkitPlayer(victim),
+                new Vector3d(eventVelocity.getX(), eventVelocity.getY(), eventVelocity.getZ()));
+
+        if (result != null)
+            event.setVelocity(new Vector(result.getX(), result.getY(), result.getZ()));
     }
 }

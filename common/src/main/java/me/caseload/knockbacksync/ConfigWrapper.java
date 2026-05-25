@@ -34,6 +34,19 @@ public class ConfigWrapper {
         return NumberConversions.toLong(value, def);
     }
 
+    public double getDouble(String path, double def) {
+        Object value = getValue(path);
+        if (value instanceof Number) return ((Number) value).doubleValue();
+        if (value instanceof String) {
+            try {
+                return Double.parseDouble((String) value);
+            } catch (NumberFormatException ignored) {
+                return def;
+            }
+        }
+        return def;
+    }
+
     public void set(String path, Object value) {
         setValue(path, value);
     }

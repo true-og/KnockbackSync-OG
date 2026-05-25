@@ -19,13 +19,23 @@ import java.util.Map;
 @Setter
 public class ConfigManager {
 
-    public static final long CONFIG_VERSION = 7;
+    public static final long CONFIG_VERSION = 8;
 
     private boolean toggled;
     private boolean runnableEnabled;
     private boolean updateAvailable;
     private boolean notifyUpdate;
     private boolean autoUpdate;
+
+    // Legacy (1.8) knockback: makes KnockbackSync the single owner of melee velocity,
+    // reproducing OldCombatMechanics' old-player-knockback values while still latency-syncing.
+    private boolean legacyKnockbackEnabled;
+    private double legacyKnockbackHorizontal;
+    private double legacyKnockbackVertical;
+    private double legacyKnockbackVerticalLimit;
+    private double legacyKnockbackExtraHorizontal;
+    private double legacyKnockbackExtraVertical;
+    private boolean legacyKnockbackResistanceEnabled;
 
     private long runnableInterval;
     private long combatTimer;
@@ -113,6 +123,14 @@ public class ConfigManager {
             }
             pingTask = Base.INSTANCE.getScheduler().runTaskTimerAsynchronously(new PingRunnable(), initialDelay, pingTaskRunnableInterval);
         }
+
+        legacyKnockbackEnabled = configWrapper.getBoolean("legacy_knockback.enabled", false);
+        legacyKnockbackHorizontal = configWrapper.getDouble("legacy_knockback.horizontal", 0.4);
+        legacyKnockbackVertical = configWrapper.getDouble("legacy_knockback.vertical", 0.4);
+        legacyKnockbackVerticalLimit = configWrapper.getDouble("legacy_knockback.vertical_limit", 0.4);
+        legacyKnockbackExtraHorizontal = configWrapper.getDouble("legacy_knockback.extra_horizontal", 0.5);
+        legacyKnockbackExtraVertical = configWrapper.getDouble("legacy_knockback.extra_vertical", 0.1);
+        legacyKnockbackResistanceEnabled = configWrapper.getBoolean("legacy_knockback.enable_knockback_resistance", false);
 
         notifyUpdate = configWrapper.getBoolean("notify_updates", true);
         autoUpdate = configWrapper.getBoolean("auto_update", true);

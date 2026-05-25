@@ -1,0 +1,37 @@
+KnockbackSync
+=============
+
+KnockbackSync is licensed under the GNU General Public License v3.0 or later.
+See README.md (section "License") and https://www.gnu.org/licenses/gpl-3.0.en.html.
+
+Bundled / ported third-party code
+----------------------------------
+
+This distribution contains a port of the 1.8 melee knockback formula from:
+
+    BukkitOldCombatMechanics (OldCombatMechanics)
+    Copyright (c) the OldCombatMechanics contributors (kernitus et al.)
+    https://github.com/kernitus/BukkitOldCombatMechanics
+    Licensed under the Mozilla Public License, Version 2.0 (MPL-2.0)
+    https://mozilla.org/MPL/2.0/
+
+The ported code lives in:
+
+    common/src/main/java/me/caseload/knockbacksync/util/LegacyKnockback.java
+
+It is derived from OldCombatMechanics' module
+`kernitus.plugin.OldCombatMechanics.module.ModulePlayerKnockback`.
+
+License compatibility
+---------------------
+
+The OldCombatMechanics source files are distributed under the standard MPL-2.0
+notice (Exhibit A) and do NOT carry the "Incompatible With Secondary Licenses"
+notice (Exhibit B). Under MPL-2.0 section 3.3, such Covered Software may be
+distributed as part of a Larger Work governed by a "Secondary License" — which
+MPL-2.0 section 1.12 defines to include the GNU General Public License, Version
+3. Accordingly, the ported file may be combined with and distributed alongside
+the GPL-3.0-or-later code that makes up the rest of KnockbackSync.
+
+The terms of the MPL-2.0 continue to govern the ported file itself; its MPL
+header is retained. The combined/Larger Work is offered under GPL-3.0-or-later.

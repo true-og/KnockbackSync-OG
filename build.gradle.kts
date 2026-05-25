@@ -2,8 +2,8 @@ import java.io.ByteArrayOutputStream
 
 plugins {
     id("java")
+    eclipse
     id("com.gradleup.shadow") version "9.2.2" apply false
-    id("fabric-loom") version "1.14.6" apply false
 }
 
 fun getGitCommitHash(project: Project): String? {

@@ -42,6 +42,16 @@ public interface PlatformPlayer {
 
     int getMainHandKnockbackLevel();
 
+    /**
+     * Knockback enchant level used for legacy (1.8) knockback bonus calculation.
+     * Mirrors OldCombatMechanics: the main hand item, or the off hand item when the
+     * main hand is empty. Defaults to the main hand level for platforms that do not
+     * override it.
+     */
+    default int getWeaponKnockbackLevel() {
+        return getMainHandKnockbackLevel();
+    }
+
     @Nullable Integer getNoDamageTicks();
 
     void setVelocity(Vector3d adjustedVelocity);
