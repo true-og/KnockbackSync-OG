@@ -64,6 +64,11 @@ tasks.withType<ShadowJar> {
     relocationPrefix = "${project.property("maven_group")}.${project.property("archives_base_name")}.shaded"
 }
 
+tasks.jar {
+    // The shaded archive is the runtime plugin; do not emit a misleading thin plugin JAR.
+    enabled = false
+}
+
 tasks.build {
     dependsOn(tasks.shadowJar)
 }

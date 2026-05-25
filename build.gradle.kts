@@ -1,4 +1,5 @@
 import java.io.ByteArrayOutputStream
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("java")
@@ -82,4 +83,22 @@ subprojects {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+}
+
+tasks.jar {
+    // The root project has no plugin entrypoint; do not emit an empty deployable-looking JAR.
+    enabled = false
+}
+
+val copyBukkitPluginJar by tasks.registering(Copy::class) {
+    val bukkitShadowJar = project(":bukkit").tasks.named<ShadowJar>("shadowJar")
+
+    dependsOn(bukkitShadowJar)
+    from(bukkitShadowJar.flatMap { it.archiveFile })
+    into(layout.buildDirectory.dir("libs"))
+    rename { "KnockbackSync-OG-$fullVersion${if (snapshot) "-SNAPSHOT" else ""}.jar" }
+}
+
+tasks.assemble {
+    dependsOn(copyBukkitPluginJar)
 }
