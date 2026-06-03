@@ -11,11 +11,11 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.34")
     annotationProcessor("org.projectlombok:lombok:1.18.34")
 
-    // Shaded in or bundled by platform-specific code
+    // Upstream 2.11.2 API; runtime impl is the externally installed True-OG fork or the shaded bundle.
     if (shadePE) {
-        implementation("com.github.retrooper:packetevents-api:2.11.1+60a2c34-SNAPSHOT")
+        implementation("com.github.retrooper:packetevents-api:2.11.2")
     } else {
-        compileOnly("com.github.retrooper:packetevents-api:2.11.1+60a2c34-SNAPSHOT")
+        compileOnly("com.github.retrooper:packetevents-api:2.11.2")
     }
 
     implementation("org.yaml:snakeyaml:2.0")
@@ -30,4 +30,6 @@ dependencies {
 
 buildConfig {
     buildConfigField("String", "GITHUB_REPO", "\"${project.rootProject.ext["githubRepo"]}\"")
+    // Exposes shadePE to source code as a compile-time constant.
+    buildConfigField("boolean", "SHADE_PE", shadePE.toString())
 }

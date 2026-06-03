@@ -34,9 +34,10 @@ val fullVersion = "1.3.5"
 val snapshot = true
 val githubRepo = System.getenv("GITHUB_REPOSITORY") ?: project.findProperty("githubRepo").toString()
 
+// Suite default external provider; shaded standalone via -PshadePE=true.
 extra["shadePE"] = project.findProperty("shadePE")?.toString()?.toBoolean()
     ?: System.getenv("SHADE_PE")?.toBoolean()
-    ?: true
+    ?: false
 
 extra["relocate"] = project.findProperty("relocate")?.toString()?.toBoolean()
     ?: System.getenv("RELOCATE_JAR")?.toBoolean()

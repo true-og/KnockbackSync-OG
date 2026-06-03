@@ -4,6 +4,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.world.Location;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
+import me.caseload.knockbacksync.common.BuildConfig;
 import me.caseload.knockbacksync.event.events.ConfigReloadEvent;
 import me.caseload.knockbacksync.event.KBSyncEventHandler;
 import me.caseload.knockbacksync.listener.bukkit.*;
@@ -103,6 +104,10 @@ public class BukkitBase extends Base {
 
     @Override
     public void load() {
+        // External-provider mode delegates PacketEvents lifecycle to the installed PE plugin.
+        if (!BuildConfig.SHADE_PE) {
+            return;
+        }
         PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this.plugin));
         PacketEvents.getAPI().load();
     }

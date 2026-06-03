@@ -1,8 +1,10 @@
 package me.caseload.knockbacksync;
 
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketListenerCommon;
 import lombok.Getter;
 import me.caseload.knockbacksync.command.MainCommand;
+import me.caseload.knockbacksync.common.BuildConfig;
 import me.caseload.knockbacksync.command.generic.AbstractPlayerSelectorParser;
 import me.caseload.knockbacksync.command.generic.BuilderCommand;
 import me.caseload.knockbacksync.command.subcommand.PingCommand;
@@ -52,6 +54,9 @@ public abstract class Base {
 
     @Getter
     protected AbstractPlayerSelectorParser<Sender> playerSelectorParser;
+
+    // Tracked so onDisable can unregister exactly the listeners registered against the shared provider.
+    private final java.util.List<PacketListenerCommon> peListenerHandles = new java.util.ArrayList<>();
 
     protected Base() {
         this.platform = detectPlatform();
@@ -105,6 +110,10 @@ public abstract class Base {
     public abstract void initializeScheduler();
 
     public void initializePacketEvents() {
+        // External-provider mode skips lifecycle ownership entirely.
+        if (!BuildConfig.SHADE_PE) {
+            return;
+        }
         PacketEvents.getAPI().getSettings()
                 .checkForUpdates(false)
                 .debug(false);
@@ -113,14 +122,32 @@ public abstract class Base {
     }
 
     protected void registerCommonListeners() {
-        PacketEvents.getAPI().getEventManager().registerListeners(
-                new AttributeChangeListener(),
-                new PingSendListener(),
-                new PingReceiveListener(),
-                new PacketPlayerJoinQuit(),
-                new ClientBrandListener()
-        );
+        registerTrackedPacketListener(new AttributeChangeListener());
+        registerTrackedPacketListener(new PingSendListener());
+        registerTrackedPacketListener(new PingReceiveListener());
+        registerTrackedPacketListener(new PacketPlayerJoinQuit());
+        registerTrackedPacketListener(new ClientBrandListener());
         Event.setEventBus(eventBus);
+    }
+
+    /** Register a PacketEvents listener and remember its handle for unregister on disable. */
+    protected void registerTrackedPacketListener(PacketListenerCommon listener) {
+        PacketEvents.getAPI().getEventManager().registerListener(listener);
+        peListenerHandles.add(listener);
+    }
+
+    /** Unregister every tracked PacketEvents listener. */
+    public void unregisterPacketListeners() {
+        for (PacketListenerCommon handle : peListenerHandles) {
+            try {
+                PacketEvents.getAPI().getEventManager().unregisterListener(handle);
+            } catch (Throwable t) {
+                if (LOGGER != null) {
+                    LOGGER.warning("Failed to unregister PE listener: " + t.getMessage());
+                }
+            }
+        }
+        peListenerHandles.clear();
     }
 
     protected abstract void registerPlatformListeners();

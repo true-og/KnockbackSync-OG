@@ -83,7 +83,8 @@ tasks.processResources {
     filesMatching("plugin.yml") {
         expand(
             "version" to project.version,
-            "depends" to if (shadePE) "[]" else listOf("packetevents")
+            // Bukkit accepts `depend` only; `depends` is silently ignored.
+            "depend" to if (shadePE) "[]" else listOf("PacketEvents")
         )
     }
 }
