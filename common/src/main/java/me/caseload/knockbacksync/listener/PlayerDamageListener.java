@@ -23,12 +23,18 @@ public abstract class PlayerDamageListener {
             return;
 
         if (config.isLegacyKnockbackEnabled()) {
-            // KnockbackSync owns the full 1.8 melee velocity. Compute it now (we have the
-            // attacker here) and store it for the PlayerVelocityEvent to apply + sync.
-            Vector3d legacy = LegacyKnockback.compute(victim, attacker, playerData, config);
-            playerData.setLegacyKnockback(legacy);
-            // On-ground sync should target the legacy vertical value, not the 1.9 one.
-            playerData.setVerticalVelocity(legacy.getY());
+            if (playerData.isRodKnockbackPending()) {
+                // A fishing-rod (bobber-direction) knockback was already supplied for this hit via
+                // the rod API. Keep it instead of overwriting with the melee formula; the velocity
+                // event still owns + latency-syncs it. Its vertical was set by the API call.
+            } else {
+                // KnockbackSync owns the full 1.8 melee velocity. Compute it now (we have the
+                // attacker here) and store it for the PlayerVelocityEvent to apply + sync.
+                Vector3d legacy = LegacyKnockback.compute(victim, attacker, playerData, config);
+                playerData.setLegacyKnockback(legacy);
+                // On-ground sync should target the legacy vertical value, not the 1.9 one.
+                playerData.setVerticalVelocity(legacy.getY());
+            }
         } else {
             playerData.setVerticalVelocity(playerData.calculateVerticalVelocity(attacker)); // do not move this calculation
         }

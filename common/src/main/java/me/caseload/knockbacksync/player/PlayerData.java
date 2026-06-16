@@ -88,6 +88,10 @@ public class PlayerData {
     // Guarded by a short expiry so a stale value never affects an unrelated velocity event.
     @Nullable private Vector3d legacyKnockback;
     private long legacyKnockbackExpiryNanos;
+    // True when the pending legacyKnockback is a fishing-rod (bobber-direction) vector supplied
+    // via the rod API rather than the melee formula. Lets the damage listener keep the rod vector
+    // instead of overwriting it with melee, while still latency-syncing it. See api.KnockbackSyncRodApi.
+    private boolean legacyKnockbackIsRod;
     @Setter private double gravityAttribute = 0.08;
     @Setter private double knockbackResistanceAttribute = 0.0;
     public PingStrategy pingStrategy; // this is currently shared between all instances, but can be made per-player later
@@ -106,8 +110,29 @@ public class PlayerData {
      */
     public void setLegacyKnockback(@Nullable Vector3d legacyKnockback) {
         this.legacyKnockback = legacyKnockback;
+        this.legacyKnockbackIsRod = false;
         // 100ms window: damage and the resulting velocity event fire in the same tick.
         this.legacyKnockbackExpiryNanos = System.nanoTime() + 100_000_000L;
+    }
+
+    /**
+     * Stores a fishing-rod (bobber-direction) knockback to apply + latency-sync on the next
+     * PlayerVelocityEvent, flagged so the damage listener keeps it instead of overwriting it with
+     * the melee formula. Must be set immediately before the rod's damage tick. See
+     * {@code api.KnockbackSyncRodApi}.
+     */
+    public void setRodKnockback(@NotNull Vector3d rodKnockback) {
+        this.legacyKnockback = rodKnockback;
+        this.legacyKnockbackIsRod = true;
+        this.legacyKnockbackExpiryNanos = System.nanoTime() + 100_000_000L;
+    }
+
+    /**
+     * @return true if an unexpired fishing-rod knockback is pending (so the damage listener must
+     * not overwrite it with melee knockback).
+     */
+    public boolean isRodKnockbackPending() {
+        return peekLegacyKnockback() != null && legacyKnockbackIsRod;
     }
 
     /**
@@ -118,6 +143,7 @@ public class PlayerData {
         if (legacyKnockback == null) return null;
         if (System.nanoTime() > legacyKnockbackExpiryNanos) {
             legacyKnockback = null;
+            legacyKnockbackIsRod = false;
             return null;
         }
         return legacyKnockback;
@@ -130,6 +156,7 @@ public class PlayerData {
     public Vector3d consumeLegacyKnockback() {
         Vector3d v = peekLegacyKnockback();
         legacyKnockback = null;
+        legacyKnockbackIsRod = false;
         return v;
     }
 
