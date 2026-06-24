@@ -65,6 +65,18 @@ legacy_knockback:
   # When false (default, matching OCM), netherite/armour knockback resistance is
   # ignored so the velocity event always fires and full 1.8 knockback is applied.
   # When true, horizontal knockback is reduced by the victim's resistance attribute.
+  #
+  # Scope of the false setting:
+  #   - Melee PvP: LegacyKnockback already ignores resistance (it owns the velocity).
+  #   - Projectile PvP (bow/arrow, trident, and snowball/egg/ender pearl once
+  #     OldCombatMechanics' projectile-knockback gives them damage): KnockbackSync
+  #     temporarily nullifies the victim's knockback-resistance attribute for the hit
+  #     so vanilla applies full knockback, then restores it (PvE is unaffected).
+  #   - Fishing-rod PvP: owned by OCM old-fishing-knockback + the rod API (already 1.8).
+  #   - Explosions are NOT affected by knockback resistance on 1.19.4, so they are
+  #     out of scope here.
+  # Ownership: KnockbackSync owns player knockback; keep OCM's old-player-knockback
+  # module DISABLED (see the IMPORTANT note above).
   enable_knockback_resistance: false
 
 # This is the rate the server will use for (amongst other things) sending packets about entities to players

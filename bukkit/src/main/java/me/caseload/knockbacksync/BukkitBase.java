@@ -137,8 +137,12 @@ public class BukkitBase extends Base {
     protected void registerPlatformListeners() {
         registerPluginListeners(
                 new BukkitPlayerDamageListener(),
-                new BukkitPlayerKnockbackListener()
+                new BukkitPlayerKnockbackListener(),
+                new me.caseload.knockbacksync.listener.bukkit.KnockbackResistanceNullifier()
         );
+        // Reconcile away any leftover owned knockback-resistance marker for players already
+        // online (e.g. across a /reload), so none is stranded.
+        me.caseload.knockbacksync.listener.bukkit.KnockbackResistanceNullifier.cleanupAll();
     }
 
     @Override

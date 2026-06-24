@@ -20,6 +20,9 @@ public final class BukkitLoaderPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // Reconcile away any leftover owned knockback-resistance marker so no player is left
+        // with reduced resistance after the plugin unloads.
+        me.caseload.knockbacksync.listener.bukkit.KnockbackResistanceNullifier.cleanupAll();
         // Drop listener handles before any lifecycle decision; the shared API may outlive this plugin.
         core.unregisterPacketListeners();
         // Terminate only when this plugin owns the PacketEvents lifecycle (shaded build).
