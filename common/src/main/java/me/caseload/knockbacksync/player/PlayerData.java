@@ -221,12 +221,13 @@ public class PlayerData {
                    packet = new WrapperPlayServerWindowConfirmation((byte) 0, pingTransactionID, false);
                }
 
+               // sendPacket (write + flush) rather than writePacket: an unflushed write sits in the channel until the next flush and inflates the measured ping.
                if (async) {
                    ChannelHelper.runInEventLoop(user.getChannel(), () -> {
-                       user.writePacket(packet);
+                       user.sendPacket(packet);
                    });
                } else {
-                   user.writePacket(packet);
+                   user.sendPacket(packet);
                }
                break;
        }
@@ -416,7 +417,8 @@ public class PlayerData {
     }
 
     private PingStrategy loadPingStrategy(ConfigManager  configManager) {
-        String pingStrategy = configManager.getConfigWrapper().getString("ping_strategy", "KEEPALIVE");
+        // Default PING: vanilla ignores unintercepted pong echoes, while unintercepted keepalive echoes kick ("Timed out") on 1.20.2+.
+        String pingStrategy = configManager.getConfigWrapper().getString("ping_strategy", "PING");
         switch (pingStrategy) {
             case "KEEPALIVE":
                 return PingStrategy.KEEPALIVE;

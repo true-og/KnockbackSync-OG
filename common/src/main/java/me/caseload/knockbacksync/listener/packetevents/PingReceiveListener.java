@@ -33,31 +33,40 @@ public class PingReceiveListener extends PacketListenerAbstract {
         PlayerData playerData = PlayerDataManager.getPlayerData(user);
         if (playerData == null) return;
 
-        if (playerData.pingStrategy == PingStrategy.KEEPALIVE && packetType == PacketType.Play.Client.KEEP_ALIVE) {
+        // Cancel echoes of injected packets before any strategy check: on 1.20.2+ an unexpected keepalive is an instant "Timed out" kick, so a strategy switch mid-flight must not leak one.
+        if (packetType == PacketType.Play.Client.KEEP_ALIVE) {
             WrapperPlayClientKeepAlive keepAlive = new WrapperPlayClientKeepAlive(event);
             long receivedId = keepAlive.getId();
 
-            handlePingCalculationPackets(event, playerData, receivedId, playerData.keepaliveMap);
-        } else if (playerData.pingStrategy == PingStrategy.TRANSACTION && packetType == PacketType.Play.Client.PONG) {
+            if (playerData.didWeSendThatPacket(receivedId))
+                event.setCancelled(true);
+
+            if (playerData.pingStrategy == PingStrategy.KEEPALIVE)
+                handlePingCalculationPackets(playerData, receivedId, playerData.keepaliveMap);
+        } else if (packetType == PacketType.Play.Client.PONG) {
             WrapperPlayClientPong pong = new WrapperPlayClientPong(event);
             int id = pong.getId();
 
-            handlePingCalculationPackets(event, playerData, id, playerData.transactionsSent);
-        } else if (playerData.pingStrategy == PingStrategy.TRANSACTION && packetType == PacketType.Play.Client.WINDOW_CONFIRMATION) {
+            if (playerData.didWeSendThatPacket(id))
+                event.setCancelled(true);
+
+            if (playerData.pingStrategy == PingStrategy.TRANSACTION)
+                handlePingCalculationPackets(playerData, id, playerData.transactionsSent);
+        } else if (packetType == PacketType.Play.Client.WINDOW_CONFIRMATION) {
             WrapperPlayClientWindowConfirmation windowConfirmation = new WrapperPlayClientWindowConfirmation(event);
             int id = windowConfirmation.getActionId();
 
-            handlePingCalculationPackets(event, playerData, id, playerData.transactionsSent);
+            if (playerData.didWeSendThatPacket(id))
+                event.setCancelled(true);
+
+            if (playerData.pingStrategy == PingStrategy.TRANSACTION)
+                handlePingCalculationPackets(playerData, id, playerData.transactionsSent);
         }
     }
 
-    private <T extends Number> void handlePingCalculationPackets(PacketReceiveEvent event, PlayerData playerData, long id, Queue<Pair<T, Long>> packetSentList) {
+    private <T extends Number> void handlePingCalculationPackets(PlayerData playerData, long id, Queue<Pair<T, Long>> packetSentList) {
 //        System.out.println("Received response ID: " + id + " Queue size before: " + packetSentList.size());
 //        System.out.println("Current queue contents: " + packetSentList.toString());
-
-        if (playerData.didWeSendThatPacket(id)) {
-            event.setCancelled(true);
-        }
 
         if (!Base.INSTANCE.getConfigManager().isToggled()) return;
 

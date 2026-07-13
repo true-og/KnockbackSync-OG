@@ -19,7 +19,7 @@ import java.util.Map;
 @Setter
 public class ConfigManager {
 
-    public static final long CONFIG_VERSION = 8;
+    public static final long CONFIG_VERSION = 9;
 
     private boolean toggled;
     private boolean runnableEnabled;
@@ -103,11 +103,11 @@ public class ConfigManager {
 
         toggled = configWrapper.getBoolean("enabled", true);
 
-        // Checks to see if the runnable was enabled...
-        // and if we now want to disable it
         boolean newRunnableEnabled = configWrapper.getBoolean("runnable.enabled", true);
-        if (runnableEnabled && newRunnableEnabled && pingTask != null) { // null check for first startup
+        // Always stop the previous ping task on reload (reschedule below only if still enabled); gating the cancel on staying enabled leaked the task when disabling via reload.
+        if (pingTask != null) { // null on first startup
             pingTask.cancel();
+            pingTask = null;
         }
 
         runnableEnabled = newRunnableEnabled;
@@ -134,7 +134,7 @@ public class ConfigManager {
 
         notifyUpdate = configWrapper.getBoolean("notify_updates", true);
         autoUpdate = configWrapper.getBoolean("auto_update", true);
-        combatTimer = configWrapper.getLong("runnable.timer", 30L);
+        combatTimer = configWrapper.getLong("runnable.combat_timer", 30L);
         spikeThreshold = configWrapper.getLong("spike_threshold", 20L);
         enableMessage = configWrapper.getString("messages.toggle.global.enable", "&aSuccessfully enabled KnockbackSync.");
         disableMessage = configWrapper.getString("messages.toggle.global.disable", "&cSuccessfully disabled KnockbackSync.");
